@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Post, Redirect } from '@nestjs/common';
 import { CreateShortLinkUseCases } from 'src/applications/use-cases/createShortLink.usecase';
 import { GetAllShortLinkUseCases } from 'src/applications/use-cases/getAllShortLinks.usecase';
 import { CreateShortLinkDto } from './dto/create-short-link.dto';
@@ -18,7 +18,7 @@ export class ShortLinkController {
   ) { }
 
 
-  @Post('/create')
+  @Post('')
   async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
     const { shortId, longUrl } = createShortLinkDto;
     const result = await this.createShortLinkUsecaseProxy.getInstance().execute({
@@ -33,7 +33,7 @@ export class ShortLinkController {
     };
   }
 
-  @Get('/all')
+  @Get('')
   async getAllShortLinks() {
     const result = await this.getUserUsecaseProxy.getInstance().execute();
     return {
@@ -55,12 +55,12 @@ export class ShortLinkController {
     };
   }
 
-  @Get('/redirect/:shortId')
+  @Redirect('/redirect/:shortId')
   async redirectToLongUrl(@Body() shortId: string) {
     const result = await this.getShortLinkByIdUsecaseProxy.getInstance().execute(shortId);
     return {
       status: 'OK',
-      code: 200,
+      code: 300,
       message: 'Redirecting to long URL',
       data: result,
     };
