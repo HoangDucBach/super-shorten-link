@@ -1,11 +1,10 @@
+import { Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShortLinkM } from 'src/domains/model/short-link';
-// import { ShortLinkRepository } from 'src/domains/repositories/short-link.repository';
-import { Repository } from 'typeorm';
-import { CreateShortLinkDto } from 'src/presentations/user/dto/create-short-link.dto';
 import { ShortLinkRepository } from 'src/domains/repositories/short-link.repository';
 import { ShortLink } from '../entities/short-link.entity';
+import { CreateShortLinkDto } from 'src/presentations/short-link/dto/create-short-link.dto';
 
 @Injectable()
 export class ShortLinkRepositoryOrm implements ShortLinkRepository {
@@ -21,15 +20,15 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
 
     async createShortLink(createShortLinkDto: CreateShortLinkDto): Promise<ShortLinkM> {
         const shortLink = new ShortLink();
-        shortLink.short_id = createShortLinkDto.short_id;
-        shortLink.long_url = createShortLinkDto.long_url;
+        shortLink.shortId = createShortLinkDto.shortId;
+        shortLink.longUrl = createShortLinkDto.longUrl;
         const savedMapping = await this.ShortLinkRepository.save(shortLink);
         return this.toShortLink(savedMapping);
     }
 
-    async findByShortId(shortId: string): Promise<ShortLinkM | null> {
+    async getShortLinkById(shortId: string): Promise<ShortLinkM | null> {
         const ShortLink = await this.ShortLinkRepository.findOne({
-            where: { short_id: shortId }
+            where: { shortId: shortId }
         });
 
         if (!ShortLink) {
@@ -42,8 +41,8 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
     private toShortLink(ShortLink: ShortLink): ShortLinkM {
         const shortLink: ShortLinkM = new ShortLinkM();
 
-        shortLink.short_id = ShortLink.short_id;
-        shortLink.long_url = ShortLink.long_url;
+        shortLink.shortId = ShortLink.shortId;
+        shortLink.longUrl = ShortLink.longUrl;
         shortLink.created_at = ShortLink.created_at;
 
         return shortLink;

@@ -1,22 +1,40 @@
-import * as bcrypt from 'bcrypt';
 import { Body, Controller, Get, Inject, Post } from '@nestjs/common';
-import { GetAllUserUseCases } from 'src/applications/use-cases/getAllUsers.usecase';
-import { CreateUserUseCases } from 'src/applications/use-cases/createUser.usecase';
-import { UseCaseProxy } from 'src/infrastructures/usecase-proxy/usecase-proxy';
+import { CreateShortLinkUseCases } from 'src/applications/use-cases/createShortLink.usecase';
+import { GetAllShortLinkUseCases } from 'src/applications/use-cases/getAllShortLinks.usecase';
+import { CreateShortLinkDto } from './dto/create-short-link.dto';
+import { GetShortLinkByIdUseCases } from 'src/applications/use-cases/getShortLinkByShortId.usecase';
 import { UsecaseProxyModule } from 'src/infrastructures/usecase-proxy/usecase-proxy.module';
-import { CreateUserDto } from './dto/create-user.dto';
+import { UseCaseProxy } from 'src/infrastructures/usecase-proxy/usecase-proxy';
 
-@Controller('users')
-export class UserController {
+@Controller('short-links')
+export class ShortLinkController {
   constructor(
-    @Inject(UsecaseProxyModule.GET_ALL_USERS_USE_CASE)
-    private readonly getUserUsecaseProxy: UseCaseProxy<GetAllUserUseCases>,
-    @Inject(UsecaseProxyModule.CREATE_USER_USE_CASE)
-    private readonly createUserUsecaseProxy: UseCaseProxy<CreateUserUseCases>,
-  ) {}
+    @Inject(UsecaseProxyModule.CREATE_SHORT_LINK_USE_CASE)
+    private readonly createShortLinkUsecaseProxy: UseCaseProxy<CreateShortLinkUseCases>,
+    @Inject(UsecaseProxyModule.GET_SHORT_LINK_BY_ID_USE_CASE)
+    private readonly getShortLinkByIdUsecaseProxy: UseCaseProxy<GetShortLinkByIdUseCases>,
+    @Inject(UsecaseProxyModule.GET_ALL_SHORT_LINKS_USE_CASE)
+    private readonly getUserUsecaseProxy: UseCaseProxy<GetAllShortLinkUseCases>,
+  ) { }
 
-  @Get('')
-  async getAllUsers() {
+
+  @Post('/create')
+  async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
+    const { shortId, longUrl } = createShortLinkDto;
+    const result = await this.createShortLinkUsecaseProxy.getInstance().execute({
+      shortId: shortId,
+      longUrl: longUrl,
+    });
+    return {
+      status: 'Created',
+      code: 201,
+      message: 'Insert data success',
+      data: result,
+    };
+  }
+
+  @Get('/all')
+  async getAllShortLinks() {
     const result = await this.getUserUsecaseProxy.getInstance().execute();
     return {
       status: 'OK',
@@ -26,19 +44,24 @@ export class UserController {
     };
   }
 
-  @Post('/signup')
-  async createUser(@Body() createUserDto: CreateUserDto) {
-    const { email, name, password } = createUserDto;
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const result = await this.createUserUsecaseProxy.getInstance().execute({
-      email: email,
-      name: name,
-      password: hashedPassword,
-    });
+  @Get('/:shortId')
+  async getShortLinkById(@Body() shortId: string) {
+    const result = await this.getShortLinkByIdUsecaseProxy.getInstance().execute(shortId);
     return {
-      status: 'Created',
-      code: 201,
-      message: 'Insert data success',
+      status: 'OK',
+      code: 200,
+      message: 'Get data success',
+      data: result,
+    };
+  }
+
+  @Get('/redirect/:shortId')
+  async redirectToLongUrl(@Body() shortId: string) {
+    const result = await this.getShortLinkByIdUsecaseProxy.getInstance().execute(shortId);
+    return {
+      status: 'OK',
+      code: 200,
+      message: 'Redirecting to long URL',
       data: result,
     };
   }

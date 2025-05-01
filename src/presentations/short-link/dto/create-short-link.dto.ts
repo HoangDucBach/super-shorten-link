@@ -9,7 +9,7 @@ export class CreateShortLinkDto {
     @IsString()
     @IsNotEmpty()
     @Length(1, 12, { message: 'Short ID must be between 1 and 12 characters' })
-    short_id: string;
+    shortId: string;
 
     @ApiProperty({
         description: 'The original long URL to be shortened',
@@ -18,5 +18,5 @@ export class CreateShortLinkDto {
     @IsString()
     @IsNotEmpty()
     @IsUrl({}, { message: 'Long URL must be a valid URL' })
-    long_url: string;
+    longUrl: string;
 }
