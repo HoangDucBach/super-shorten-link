@@ -7,7 +7,6 @@ import { ShortLink, ShortLinkForRead } from '../entities/short-link.entity';
 import { CreateShortLinkDto, CreateShortLinkForReadDto } from 'src/presentations/short-link/dto/create-short-link.dto';
 import { ShortIdGenService } from 'src/short-id-gen/short-id-gen.service';
 import { DatabaseStreamType } from 'src/domains/config/database.interface';
-import { CacheService } from 'src/cache/cache.service';
 
 @Injectable()
 export class ShortLinkRepositoryOrm implements ShortLinkRepository {
@@ -20,8 +19,6 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
 
         @Inject(ShortIdGenService)
         private readonly shortIdGenService: ShortIdGenService,
-        @Inject(CacheService)
-        private readonly cacheService: CacheService,
     ) { }
 
     writeShortLinkToReadDatabase(shortLink: CreateShortLinkForReadDto): Promise<ShortLinkForReadM> {
@@ -70,23 +67,9 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
         shortLink.longUrl = createShortLinkDto.longUrl;
         shortLink.createdAt = new Date();
         return await this.writeShortLinkRepository.save(shortLink);
-        console.log('Saved mapping:', shortLink.longUrl);
-        this.cacheService.setUrl(shortLink.shortId, shortLink.longUrl);
-    }
+        }
 
     async getShortLinkById(shortId: string): Promise<ShortLinkForReadM | null> {
-
-        console.log('Fetching short link by ID:', shortId)
-        const cacheData = await this.cacheService.getUrl((shortId))
-        console.log('Cache data:', cacheData);
-        if (cacheData) {
-            const shortLink = new ShortLinkM();
-            shortLink.shortId = shortId;
-            shortLink.longUrl = cacheData;
-            shortLink.createdAt = new Date();  
-            console.log('Cache hit:', shortLink);
-            return shortLink;
-        }
 
         const shortLink = await this.readShortLinkRepository.findOne({
             where: { shortId: shortId }

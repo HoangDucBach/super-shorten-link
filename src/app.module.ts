@@ -19,7 +19,7 @@ import { CacheModule } from './cache/cache.module';
     EnvironmentConfigModule,
     DistributedCounterModule,
     ShortIdGenModule
-  ,CacheModule],
+  ,CacheModule.registerAsync()],
   controllers: [UserController, ShortLinkController],
 })
 export class AppModule { }

@@ -3,11 +3,13 @@ import { UsecaseProxyModule } from 'src/infrastructures/usecase-proxy/usecase-pr
 import { ShortLinkController } from './short-link.controller';
 import { ShortIdGenModule } from 'src/short-id-gen/short-id-gen.module';
 import { CommandHandlers, EventsHandlers, QueryHandlers } from './cqrs';
+import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
   imports: [
     UsecaseProxyModule.register(),
-    ShortIdGenModule
+    ShortIdGenModule,
+    CacheModule.registerAsync()
   ],
   controllers: [ShortLinkController],
   providers: [

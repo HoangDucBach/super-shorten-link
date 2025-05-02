@@ -13,8 +13,7 @@ import { CacheModule } from 'src/cache/cache.module';
   imports: [TypeOrmConfigModule,
     TypeOrmModule.forFeature([User, ShortLink], DatabaseStreamType.WRITE),
     TypeOrmModule.forFeature([User, ShortLink, ShortLinkForRead], DatabaseStreamType.READ),
-    ShortIdGenModule
-  , CacheModule.registerAsync()],
+    ShortIdGenModule],
   providers: [UserRepositoryOrm, ShortLinkRepositoryOrm],
   exports: [UserRepositoryOrm, ShortLinkRepositoryOrm],
 })
