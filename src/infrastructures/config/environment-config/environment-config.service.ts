@@ -5,6 +5,7 @@ import { DatabaseConfig, DatabaseStreamType } from 'src/domains/config/database.
 @Injectable()
 export class EnvironmentConfigService implements DatabaseConfig {
   constructor(private configService: ConfigService) { }
+
   getDatabaseHost(type: DatabaseStreamType): string {
     switch (type) {
       case DatabaseStreamType.READ:

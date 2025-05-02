@@ -9,5 +9,5 @@ export class ShortLink {
     longUrl: string;
 
     @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
-    created_at: Date;
+    createdAt: Date;
 }

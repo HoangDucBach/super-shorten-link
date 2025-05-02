@@ -6,9 +6,14 @@ import { UserRepositoryOrm } from './user.repository';
 import { ShortLinkRepositoryOrm } from './short-links.repository';
 import { ShortLink } from '../entities/short-link.entity';
 import { ShortIdGenModule } from 'src/short-id-gen/short-id-gen.module';
+import { DatabaseStreamType } from 'src/domains/config/database.interface';
 
 @Module({
-  imports: [TypeOrmConfigModule, TypeOrmModule.forFeature([User, ShortLink]), ShortIdGenModule],
+  imports: [TypeOrmConfigModule,
+    TypeOrmModule.forFeature([User, ShortLink], DatabaseStreamType.WRITE),
+    TypeOrmModule.forFeature([User, ShortLink], DatabaseStreamType.READ),
+    ShortIdGenModule
+  ],
   providers: [UserRepositoryOrm, ShortLinkRepositoryOrm],
   exports: [UserRepositoryOrm, ShortLinkRepositoryOrm],
 })

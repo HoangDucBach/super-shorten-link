@@ -1,6 +1,11 @@
 export enum DatabaseStreamType {
-  READ,
-  WRITE,
+  READ = 'read-stream',
+  WRITE = 'write-stream',
+}
+
+export enum DatabaseConnectionType {
+  READ = 'read',
+  WRITE = 'write',
 }
 
 export interface DatabaseConfig {

@@ -8,6 +8,7 @@ export const getWriteTypeOrmModuleOptions = (
   config: EnvironmentConfigService,
 ): TypeOrmModuleOptions =>
 ({
+  name: DatabaseStreamType.WRITE,
   type: 'postgres',
   host: config.getDatabaseHost(DatabaseStreamType.WRITE),
   port: config.getDatabasePort(DatabaseStreamType.WRITE),
@@ -24,6 +25,7 @@ export const getWriteTypeOrmModuleOptions = (
     migrationsDir: 'src/migrations',
   },
 } as TypeOrmModuleOptions);
+
 export const getReadTypeOrmModuleOptions = (
   config: EnvironmentConfigService,
 ): TypeOrmModuleOptions =>
@@ -44,23 +46,20 @@ export const getReadTypeOrmModuleOptions = (
   imports: [
     // WRITE DB
     TypeOrmModule.forRootAsync({
+      name: DatabaseStreamType.WRITE,
       imports: [EnvironmentConfigModule],
       inject: [EnvironmentConfigService],
-      useFactory: async (config: EnvironmentConfigService) => ({
-        ...getWriteTypeOrmModuleOptions(config),
-        name: 'write_connection',
-      }),
+      useFactory: getWriteTypeOrmModuleOptions,
     }),
 
     // READ DB
     TypeOrmModule.forRootAsync({
+      name: DatabaseStreamType.READ,
       imports: [EnvironmentConfigModule],
       inject: [EnvironmentConfigService],
-      useFactory: async (config: EnvironmentConfigService) => ({
-        ...getReadTypeOrmModuleOptions(config),
-        name: 'read_connection',
-      }),
+      useFactory: getReadTypeOrmModuleOptions,
     }),
   ],
 })
+
 export class TypeOrmConfigModule { }

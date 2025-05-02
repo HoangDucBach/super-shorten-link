@@ -1,7 +1,8 @@
+import { Command } from "@nestjs/cqrs";
+
 export class CreateShortLinkCommand {
-    constructor(
-      public readonly shortId: string,
-      public readonly longUrl: string,
-    ) {}
+  constructor(
+    public readonly longUrl: string,
+  ) {
   }
-  
+}

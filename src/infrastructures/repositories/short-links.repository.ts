@@ -6,48 +6,40 @@ import { ShortLinkRepository } from 'src/domains/repositories/short-link.reposit
 import { ShortLink } from '../entities/short-link.entity';
 import { CreateShortLinkDto } from 'src/presentations/short-link/dto/create-short-link.dto';
 import { ShortIdGenService } from 'src/short-id-gen/short-id-gen.service';
+import { DatabaseStreamType } from 'src/domains/config/database.interface';
 
 @Injectable()
 export class ShortLinkRepositoryOrm implements ShortLinkRepository {
     constructor(
-        @InjectRepository(ShortLink)
-        private readonly ShortLinkRepository: Repository<ShortLink>,
+        @InjectRepository(ShortLink, DatabaseStreamType.WRITE)
+        private readonly writeShortLinkRepository: Repository<ShortLink>,
+
+        @InjectRepository(ShortLink, DatabaseStreamType.READ)
+        private readonly readShortLinkRepository: Repository<ShortLink>,
+
         @Inject(ShortIdGenService)
         private readonly shortIdGenService: ShortIdGenService,
     ) { }
 
     async getAllShortLink(): Promise<ShortLinkM[]> {
-        const ShortLinks = await this.ShortLinkRepository.find();
-        return ShortLinks.map((ShortLink) => this.toShortLink(ShortLink));
+        const shortLinks = await this.readShortLinkRepository.find();
+        return shortLinks;
     }
 
     async createShortLink(createShortLinkDto: CreateShortLinkDto): Promise<ShortLinkM> {
         const shortLink = new ShortLink();
-        shortLink.shortId = createShortLinkDto.shortId || await this.shortIdGenService.generateShortId();
+        console.log('createShortLinkDto', createShortLinkDto);
+        shortLink.shortId = await this.shortIdGenService.generateShortId();
         shortLink.longUrl = createShortLinkDto.longUrl;
-        const savedMapping = await this.ShortLinkRepository.save(shortLink);
-        return this.toShortLink(savedMapping);
+        return await this.writeShortLinkRepository.save(shortLink);
     }
 
     async getShortLinkById(shortId: string): Promise<ShortLinkM | null> {
-        const ShortLink = await this.ShortLinkRepository.findOne({
+        const shortLink = await this.readShortLinkRepository.findOne({
             where: { shortId: shortId }
         });
-
-        if (!ShortLink) {
-            return null;
-        }
-
-        return this.toShortLink(ShortLink);
-    }
-
-    private toShortLink(ShortLink: ShortLink): ShortLinkM {
-        const shortLink: ShortLinkM = new ShortLinkM();
-
-        shortLink.shortId = ShortLink.shortId;
-        shortLink.longUrl = ShortLink.longUrl;
-        shortLink.createdAt = ShortLink.created_at;
-
+        
         return shortLink;
     }
+
 }
