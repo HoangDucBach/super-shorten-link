@@ -6,9 +6,10 @@ import { UserRepositoryOrm } from './user.repository';
 import { ShortLinkRepositoryOrm } from './short-links.repository';
 import { ShortLink } from '../entities/short-link.entity';
 import { ShortIdGenModule } from 'src/short-id-gen/short-id-gen.module';
+import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
-  imports: [TypeOrmConfigModule, TypeOrmModule.forFeature([User, ShortLink]), ShortIdGenModule],
+  imports: [TypeOrmConfigModule, TypeOrmModule.forFeature([User, ShortLink]), ShortIdGenModule, CacheModule.registerAsync()],
   providers: [UserRepositoryOrm, ShortLinkRepositoryOrm],
   exports: [UserRepositoryOrm, ShortLinkRepositoryOrm],
 })

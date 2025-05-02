@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Redirect } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Redirect } from '@nestjs/common';
 import { CreateShortLinkUseCases } from 'src/applications/use-cases/createShortLink.usecase';
 import { GetAllShortLinkUseCases } from 'src/applications/use-cases/getAllShortLinks.usecase';
 import { CreateShortLinkDto } from './dto/create-short-link.dto';
@@ -45,7 +45,7 @@ export class ShortLinkController {
   }
 
   @Get('/:shortId')
-  async getShortLinkById(@Body() shortId: string) {
+  async getShortLinkById(@Param('shortId') shortId: string) {
     const result = await this.getShortLinkByIdUsecaseProxy.getInstance().execute(shortId);
     return {
       status: 'OK',

@@ -23,7 +23,7 @@ export class DistributedCounterService implements OnModuleInit, OnModuleDestroy 
     constructor(
         @Inject(REDIS_CLIENT) private readonly redis: Redis
     ) {
-        // Avoid async operations in the constructor.
+        // Avoid async operations in the constructor .
         // Initialization logic is moved to onModuleInit.
     }
 
