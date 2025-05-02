@@ -11,3 +11,14 @@ export class CreateShortLinkDto {
     @IsUrl({}, { message: 'Long URL must be a valid URL' })
     longUrl: string;
 }
+
+export class CreateShortLinkForReadDto {
+    @IsString()
+    @IsNotEmpty()
+    shortId: string;
+
+    @IsString()
+    @IsNotEmpty()
+    @IsUrl({}, { message: 'Long URL must be a valid URL' })
+    longUrl: string;
+}

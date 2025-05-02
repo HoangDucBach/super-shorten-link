@@ -11,3 +11,12 @@ export class ShortLink {
     @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
     createdAt: Date;
 }
+
+@Entity({ name: 'short_links' })
+export class ShortLinkForRead {
+    @PrimaryColumn({ type: 'varchar', length: 12, name: 'short_id' })
+    shortId: string;
+
+    @Column({ type: 'text', nullable: false, name: 'long_url' })
+    longUrl: string;
+}

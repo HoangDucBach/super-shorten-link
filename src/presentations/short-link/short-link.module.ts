@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { UsecaseProxyModule } from 'src/infrastructures/usecase-proxy/usecase-proxy.module';
 import { ShortLinkController } from './short-link.controller';
 import { ShortIdGenModule } from 'src/short-id-gen/short-id-gen.module';
-import { CommandHandlers, QueryHandlers } from './cqrs';
-import { CreateShortLinkHandler } from './cqrs/create-short-link.handler';
+import { CommandHandlers, EventsHandlers, QueryHandlers } from './cqrs';
 
 @Module({
   imports: [
@@ -14,6 +13,7 @@ import { CreateShortLinkHandler } from './cqrs/create-short-link.handler';
   providers: [
     ...CommandHandlers,
     ...QueryHandlers,
+    ...EventsHandlers,
   ],
 })
 export class ShortLinkModule { }

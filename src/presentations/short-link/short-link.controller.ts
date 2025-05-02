@@ -1,9 +1,8 @@
-import { Body, Controller, Get, HttpStatus, Inject, Param, Post, Redirect } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Redirect } from '@nestjs/common';
 import { CreateShortLinkDto } from './dto/create-short-link.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { CreateShortLinkCommand } from './cqrs/create-short-link.command';
-import { GetShortLinkByIdQuery } from './cqrs/get-short-link-by-id.command';
-import { url } from 'inspector';
+import { CreateShortLinkCommand } from './cqrs/commands/create-short-link.command';
+import { GetShortLinkByIdQuery } from './cqrs/queries/get-short-link-by-id.command';
 
 @Controller('short-links')
 export class ShortLinkController {
@@ -13,20 +12,28 @@ export class ShortLinkController {
   ) { }
 
 
-  // @Post('')
-  // async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
-  //   const { longUrl } = createShortLinkDto;
-  //   const result = await this.commandBus.execute(
-  //     new CreateShortLinkCommand(longUrl),
-  //   );
+  @Post('')
+  async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
+    try {
+      const { longUrl } = createShortLinkDto;
+      const result = await this.commandBus.execute(
+        new CreateShortLinkCommand(longUrl),
+      );
 
-  //   return {
-  //     status: 'Created',
-  //     code: HttpStatus.CREATED,
-  //     message: 'Insert data success',
-  //     data: result,
-  //   };
-  // }
+      return {
+        status: 'Created',
+        code: HttpStatus.CREATED,
+        message: 'Insert data success',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        status: 'Bad Request',
+        code: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      };
+    }
+  }
 
   @Get('')
   async getAllShortLinks() {
@@ -51,7 +58,6 @@ export class ShortLinkController {
       };
     } catch (error) {
       return {
-        url: '/404',
         status: 'Not Found',
         code: HttpStatus.NOT_FOUND,
       };
