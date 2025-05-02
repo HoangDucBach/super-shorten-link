@@ -1,9 +1,19 @@
+export enum DatabaseStreamType {
+  READ = 'read-stream',
+  WRITE = 'write-stream',
+}
+
+export enum DatabaseConnectionType {
+  READ = 'read',
+  WRITE = 'write',
+}
+
 export interface DatabaseConfig {
-  getDatabaseHost(): string;
-  getDatabasePort(): number;
-  getDatabaseUser(): string;
-  getDatabasePassword(): string;
-  getDatabaseName(): string;
-  getDatabaseSchema(): string;
-  getDatabaseSync(): boolean;
+  getDatabaseHost(type: DatabaseStreamType): string;
+  getDatabasePort(type: DatabaseStreamType): number;
+  getDatabaseUser(type: DatabaseStreamType): string;
+  getDatabasePassword(type: DatabaseStreamType): string;
+  getDatabaseName(type: DatabaseStreamType): string;
+  getDatabaseSchema(type: DatabaseStreamType): string;
+  getDatabaseSync(type: DatabaseStreamType): boolean;
 }

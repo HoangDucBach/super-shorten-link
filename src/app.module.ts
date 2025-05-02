@@ -7,10 +7,19 @@ import { ShortLinkController } from './presentations/short-link/short-link.contr
 import { ShortLinkModule } from './presentations/short-link/short-link.module';
 import { DistributedCounterModule } from './distributed-counter/distributed-counter.module';
 import { ShortIdGenModule } from './short-id-gen/short-id-gen.module';
+import { CqrsModule } from '@nestjs/cqrs';
 import { CacheModule } from './cache/cache.module';
 
 @Module({
-  imports: [UsecaseProxyModule.register(), UserModule, ShortLinkModule, EnvironmentConfigModule, DistributedCounterModule, ShortIdGenModule,CacheModule],
+  imports: [
+    UsecaseProxyModule.register(),
+    CqrsModule.forRoot(),
+    UserModule,
+    ShortLinkModule,
+    EnvironmentConfigModule,
+    DistributedCounterModule,
+    ShortIdGenModule
+  ,CacheModule],
   controllers: [UserController, ShortLinkController],
 })
 export class AppModule { }

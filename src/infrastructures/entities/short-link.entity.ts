@@ -9,5 +9,14 @@ export class ShortLink {
     longUrl: string;
 
     @CreateDateColumn({ type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP', name: 'created_at' })
-    created_at: Date;
+    createdAt: Date;
+}
+
+@Entity({ name: 'short_links' })
+export class ShortLinkForRead {
+    @PrimaryColumn({ type: 'varchar', length: 12, name: 'short_id' })
+    shortId: string;
+
+    @Column({ type: 'text', nullable: false, name: 'long_url' })
+    longUrl: string;
 }

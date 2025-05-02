@@ -5,11 +5,12 @@ import { UserRepository } from 'src/domains/repositories/user.repository';
 import { CreateUserDto } from 'src/presentations/user/dto/create-user.dto';
 import { Repository } from 'typeorm';
 import { User } from '../entities/user.entity';
+import { DatabaseStreamType } from 'src/domains/config/database.interface';
 
 @Injectable()
 export class UserRepositoryOrm implements UserRepository {
   constructor(
-    @InjectRepository(User)
+    @InjectRepository(User, DatabaseStreamType.WRITE)
     private readonly userRepository: Repository<User>,
   ) {}
 

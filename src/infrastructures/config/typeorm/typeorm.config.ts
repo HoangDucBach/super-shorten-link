@@ -2,7 +2,7 @@ import { DataSource } from 'typeorm';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const config = new DataSource({
+const writeConfig = new DataSource({
   type: 'postgres',
   host: process.env.POSTGRES_HOST,
   port: 5432,
@@ -10,21 +10,36 @@ const config = new DataSource({
   password: process.env.POSTGRES_PASSWORD,
   database: process.env.POSTGRES_DATABASE,
   entities: [__dirname + './../../**/*.entity{.ts,.js}'],
-  synchronize: true,
+  synchronize: false,
   schema: process.env.DATABASE_SCHEMA,
   migrationsRun: true,
   migrations: ['database/migrations/**/*{.ts,.js}'],
 });
-console.log('config', config)
-config
-  .initialize()
+
+const readConfig = new DataSource({
+  type: 'postgres',
+  host: process.env.READ_POSTGRES_HOST,
+  port: 5432,
+  username: process.env.READ_POSTGRES_USER,
+  password: process.env.READ_POSTGRES_PASSWORD,
+  database: process.env.READ_POSTGRES_DATABASE,
+  entities: [__dirname + './../../**/*.entity{.ts,.js}'],
+  synchronize: false,
+  schema: process.env.READ_DATABASE_SCHEMA,
+  migrationsRun: true,
+  migrations: ['database/migrations/**/*{.ts,.js}'],
+});
+
+
+Promise.all([
+  writeConfig.initialize(),
+  readConfig.initialize()
+])
   .then(() => {
-    console.log('Data Source has been initialized!');
+    console.log('All Data Sources have been initialized!');
   })
   .catch((err) => {
-    console.error('Error during Data Source initialization', err);
+    console.error('Error during Data Sources initialization', err);
   });
 
-console.log(config);
-
-export default config;
+export { writeConfig, readConfig };

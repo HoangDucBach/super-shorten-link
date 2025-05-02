@@ -4,12 +4,17 @@ import { TypeOrmConfigModule } from '../config/typeorm/typeorm.module';
 import { User } from '../entities/user.entity';
 import { UserRepositoryOrm } from './user.repository';
 import { ShortLinkRepositoryOrm } from './short-links.repository';
-import { ShortLink } from '../entities/short-link.entity';
+import { ShortLink, ShortLinkForRead } from '../entities/short-link.entity';
 import { ShortIdGenModule } from 'src/short-id-gen/short-id-gen.module';
+import { DatabaseStreamType } from 'src/domains/config/database.interface';
 import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
-  imports: [TypeOrmConfigModule, TypeOrmModule.forFeature([User, ShortLink]), ShortIdGenModule, CacheModule.registerAsync()],
+  imports: [TypeOrmConfigModule,
+    TypeOrmModule.forFeature([User, ShortLink], DatabaseStreamType.WRITE),
+    TypeOrmModule.forFeature([User, ShortLink, ShortLinkForRead], DatabaseStreamType.READ),
+    ShortIdGenModule
+  , CacheModule.registerAsync()],
   providers: [UserRepositoryOrm, ShortLinkRepositoryOrm],
   exports: [UserRepositoryOrm, ShortLinkRepositoryOrm],
 })

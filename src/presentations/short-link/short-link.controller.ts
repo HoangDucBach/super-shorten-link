@@ -1,68 +1,67 @@
-import { Body, Controller, Get, Inject, Param, Post, Redirect } from '@nestjs/common';
-import { CreateShortLinkUseCases } from 'src/applications/use-cases/createShortLink.usecase';
-import { GetAllShortLinkUseCases } from 'src/applications/use-cases/getAllShortLinks.usecase';
+import { Body, Controller, Get, HttpStatus, Param, Param, Post, Redirect } from '@nestjs/common';
 import { CreateShortLinkDto } from './dto/create-short-link.dto';
-import { GetShortLinkByIdUseCases } from 'src/applications/use-cases/getShortLinkByShortId.usecase';
-import { UsecaseProxyModule } from 'src/infrastructures/usecase-proxy/usecase-proxy.module';
-import { UseCaseProxy } from 'src/infrastructures/usecase-proxy/usecase-proxy';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { CreateShortLinkCommand } from './cqrs/commands/create-short-link.command';
+import { GetShortLinkByIdQuery } from './cqrs/queries/get-short-link-by-id.command';
 
 @Controller('short-links')
 export class ShortLinkController {
   constructor(
-    @Inject(UsecaseProxyModule.CREATE_SHORT_LINK_USE_CASE)
-    private readonly createShortLinkUsecaseProxy: UseCaseProxy<CreateShortLinkUseCases>,
-    @Inject(UsecaseProxyModule.GET_SHORT_LINK_BY_ID_USE_CASE)
-    private readonly getShortLinkByIdUsecaseProxy: UseCaseProxy<GetShortLinkByIdUseCases>,
-    @Inject(UsecaseProxyModule.GET_ALL_SHORT_LINKS_USE_CASE)
-    private readonly getUserUsecaseProxy: UseCaseProxy<GetAllShortLinkUseCases>,
+    private commandBus: CommandBus,
+    private queryBus: QueryBus,
   ) { }
 
 
   @Post('')
   async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
-    const { shortId, longUrl } = createShortLinkDto;
-    const result = await this.createShortLinkUsecaseProxy.getInstance().execute({
-      shortId: shortId,
-      longUrl: longUrl,
-    });
-    return {
-      status: 'Created',
-      code: 201,
-      message: 'Insert data success',
-      data: result,
-    };
+    try {
+      const { longUrl } = createShortLinkDto;
+      const result = await this.commandBus.execute(
+        new CreateShortLinkCommand(longUrl),
+      );
+
+      return {
+        status: 'Created',
+        code: HttpStatus.CREATED,
+        message: 'Insert data success',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        status: 'Bad Request',
+        code: HttpStatus.BAD_REQUEST,
+        message: error.message,
+      };
+    }
   }
 
   @Get('')
   async getAllShortLinks() {
-    const result = await this.getUserUsecaseProxy.getInstance().execute();
-    return {
-      status: 'OK',
-      code: 200,
-      message: 'Get data success',
-      data: result,
-    };
+    // const result = await this..getInstance().execute();
+    // return {
+    //   status: 'OK',
+    //   code: HttpStatus.OK,
+    //   message: 'Get data success',
+    //   data: result,
+    // };
   }
 
   @Get('/:shortId')
+  @Redirect()
   async getShortLinkById(@Param('shortId') shortId: string) {
-    const result = await this.getShortLinkByIdUsecaseProxy.getInstance().execute(shortId);
-    return {
-      status: 'OK',
-      code: 200,
-      message: 'Get data success',
-      data: result,
-    };
+    try {
+      const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
+
+      return {
+        url: result.longUrl,
+        code: HttpStatus.FOUND,
+      };
+    } catch (error) {
+      return {
+        status: 'Not Found',
+        code: HttpStatus.NOT_FOUND,
+      };
+    }
   }
 
-  @Redirect('/redirect/:shortId')
-  async redirectToLongUrl(@Body() shortId: string) {
-    const result = await this.getShortLinkByIdUsecaseProxy.getInstance().execute(shortId);
-    return {
-      status: 'OK',
-      code: 300,
-      message: 'Redirecting to long URL',
-      data: result,
-    };
-  }
 }

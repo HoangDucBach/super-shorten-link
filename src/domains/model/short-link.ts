@@ -1,5 +1,10 @@
 export class ShortLinkM {
     shortId: string;
     longUrl: string;
-    created_at: Date;
+    createdAt: Date;
+}
+
+export class ShortLinkForReadM {
+    shortId: string;
+    longUrl: string;
 }
