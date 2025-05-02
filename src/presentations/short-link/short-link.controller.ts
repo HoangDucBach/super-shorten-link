@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, Param, Param, Post, Redirect } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Redirect } from '@nestjs/common';
 import { CreateShortLinkDto } from './dto/create-short-link.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CreateShortLinkCommand } from './cqrs/commands/create-short-link.command';

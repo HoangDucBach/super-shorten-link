@@ -83,7 +83,7 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
             const shortLink = new ShortLinkM();
             shortLink.shortId = shortId;
             shortLink.longUrl = cacheData;
-            shortLink.created_at = new Date();  
+            shortLink.createdAt = new Date();  
             console.log('Cache hit:', shortLink);
             return shortLink;
         }
