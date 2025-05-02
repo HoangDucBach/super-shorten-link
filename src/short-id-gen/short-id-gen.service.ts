@@ -31,7 +31,7 @@ export class ShortIdGenService {
         // bạn sẽ cần dùng @Inject(TOKEN_CỦA_SERVICE) ở đây.
         // Ví dụ: @Inject(DistributedCounterModule.DISTRIBUTED_COUNTER_SERVICE) private readonly counterService: DistributedCounterService
     ) {
-         this.logger.log('ShortIdGenService initialized.');
+        this.logger.log('ShortIdGenService initialized.');
     }
 
     /**
@@ -74,10 +74,10 @@ export class ShortIdGenService {
 
         // Xử lý trường hợp đặc biệt cho số 0
         if (value === 0) {
-             // Quyết định cách mã hóa số 0. '0' là phổ biến.
-             // Nếu bạn muốn độ dài tối thiểu ngay cả với 0, hãy padding ở đây.
-             // Ví dụ: return CHARS[0].repeat(MIN_LENGTH);
-             return CHARS[0];
+            // Quyết định cách mã hóa số 0. '0' là phổ biến.
+            // Nếu bạn muốn độ dài tối thiểu ngay cả với 0, hãy padding ở đây.
+            // Ví dụ: return CHARS[0].repeat(MIN_LENGTH);
+            return CHARS[0];
         }
 
         let encoded = '';
@@ -91,7 +91,7 @@ export class ShortIdGenService {
         // Độ dài tối thiểu 7 ký tự như trong code gốc của bạn.
         const MIN_LENGTH = 7;
         while (encoded.length < MIN_LENGTH) {
-             encoded = CHARS[0] + encoded;
+            encoded = CHARS[0] + encoded;
         }
 
         // Trả về chuỗi đã mã hóa và padding. KHÔNG CẮT CHUỖI.

@@ -46,7 +46,7 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
 
         shortLink.shortId = ShortLink.shortId;
         shortLink.longUrl = ShortLink.longUrl;
-        shortLink.created_at = ShortLink.created_at;
+        shortLink.createdAt = ShortLink.created_at;
 
         return shortLink;
     }
