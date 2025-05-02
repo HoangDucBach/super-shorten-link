@@ -1,16 +1,19 @@
 import { Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShortLinkM } from 'src/domains/model/short-link';
 import { ShortLinkRepository } from 'src/domains/repositories/short-link.repository';
 import { ShortLink } from '../entities/short-link.entity';
 import { CreateShortLinkDto } from 'src/presentations/short-link/dto/create-short-link.dto';
+import { ShortIdGenService } from 'src/short-id-gen/short-id-gen.service';
 
 @Injectable()
 export class ShortLinkRepositoryOrm implements ShortLinkRepository {
     constructor(
         @InjectRepository(ShortLink)
         private readonly ShortLinkRepository: Repository<ShortLink>,
+        @Inject(ShortIdGenService)
+        private readonly shortIdGenService: ShortIdGenService,
     ) { }
 
     async getAllShortLink(): Promise<ShortLinkM[]> {
@@ -20,7 +23,7 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
 
     async createShortLink(createShortLinkDto: CreateShortLinkDto): Promise<ShortLinkM> {
         const shortLink = new ShortLink();
-        shortLink.shortId = createShortLinkDto.shortId;
+        shortLink.shortId = createShortLinkDto.shortId || await this.shortIdGenService.generateShortId();
         shortLink.longUrl = createShortLinkDto.longUrl;
         const savedMapping = await this.ShortLinkRepository.save(shortLink);
         return this.toShortLink(savedMapping);

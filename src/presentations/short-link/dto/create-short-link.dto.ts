@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsUrl, Length } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, IsUrl, Length } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateShortLinkDto {
@@ -8,8 +8,9 @@ export class CreateShortLinkDto {
     })
     @IsString()
     @IsNotEmpty()
+    @IsOptional()
     @Length(1, 12, { message: 'Short ID must be between 1 and 12 characters' })
-    shortId: string;
+    shortId?: string;
 
     @ApiProperty({
         description: 'The original long URL to be shortened',

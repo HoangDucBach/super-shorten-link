@@ -5,9 +5,11 @@ import { UsecaseProxyModule } from './infrastructures/usecase-proxy/usecase-prox
 import { UserController } from './presentations/user/user.controller';
 import { ShortLinkController } from './presentations/short-link/short-link.controller';
 import { ShortLinkModule } from './presentations/short-link/short-link.module';
+import { DistributedCounterModule } from './distributed-counter/distributed-counter.module';
+import { ShortIdGenModule } from './short-id-gen/short-id-gen.module';
 
 @Module({
-  imports: [UsecaseProxyModule.register(), UserModule, ShortLinkModule, EnvironmentConfigModule],
+  imports: [UsecaseProxyModule.register(), UserModule, ShortLinkModule, EnvironmentConfigModule, DistributedCounterModule, ShortIdGenModule],
   controllers: [UserController, ShortLinkController],
 })
 export class AppModule { }
