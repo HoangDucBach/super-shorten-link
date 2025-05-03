@@ -4,9 +4,9 @@ import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { CacheService } from 'src/cache/cache.service';
 import { CreateShortLinkCommand } from './cqrs/commands/short-link.command';
 import { GetAllShortLinkQuery, GetShortLinkByIdQuery } from './cqrs/queries/short-link.query';
-import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
+import { seconds, SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
-@UseGuards(ThrottlerGuard)
+// @UseGuards(ThrottlerGuard)
 @Controller('short-links')
 export class ShortLinkController {
   constructor(
@@ -17,7 +17,7 @@ export class ShortLinkController {
     private readonly cacheService: CacheService
   ) { }
 
-  @Throttle({ medium: { limit: 20, ttl: 10000 } })
+  // @Throttle({ medium: { limit: 20, ttl: seconds(60) } })
   @Post('')
   async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
     try {
@@ -41,7 +41,7 @@ export class ShortLinkController {
     }
   }
 
-  @Throttle({ medium: { limit: 20, ttl: 10000 } })
+  // @Throttle({ medium: { limit: 60, ttl: seconds(60) } })
   @Get('')
   async getAllShortLinks() {
     const result = await this.queryBus.execute(
@@ -56,9 +56,9 @@ export class ShortLinkController {
   }
 
 
-  
+
   @Get('/:shortId')
-  @Redirect()
+  // @SkipThrottle()
   async getShortLinkById(@Param('shortId') shortId: string) {
     try {
       console.log("Fetching from cache...");
@@ -68,14 +68,11 @@ export class ShortLinkController {
         const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
         this.cacheService.setUrl(shortId, result.longUrl);
         return {
-          url: result.longUrl,
-          code: HttpStatus.FOUND,
+          result: result.longUrl,
+          code: HttpStatus.OK,
+          status: 'OK',
+          message: 'Get data success',
         };
-      }
-
-      return {
-        url: longUrl,
-        code: HttpStatus.FOUND,
       }
 
     } catch (error) {
