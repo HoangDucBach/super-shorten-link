@@ -17,3 +17,14 @@ export interface DatabaseConfig {
   getDatabaseSchema(type: DatabaseStreamType): string;
   getDatabaseSync(type: DatabaseStreamType): boolean;
 }
+
+export enum RateLimitingType {
+  SHORT = 'short',
+  MEDIUM = 'medium',
+  LONG = 'long',
+}
+
+export interface RateLimitingConfig {
+  getRateLimitingTtl(type: RateLimitingType): number;
+  getRateLimitingLimit(type: RateLimitingType): number;
+}

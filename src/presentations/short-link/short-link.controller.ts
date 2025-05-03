@@ -1,10 +1,12 @@
-import { Body, Controller, Get, HttpStatus, Param, Post, Redirect, Inject } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Param, Post, Redirect, Inject, UseGuards } from '@nestjs/common';
 import { CreateShortLinkDto } from './dto/create-short-link.dto';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
-import { CreateShortLinkCommand } from './cqrs/commands/create-short-link.command';
-import { GetShortLinkByIdQuery } from './cqrs/queries/get-short-link-by-id.command';
 import { CacheService } from 'src/cache/cache.service';
+import { CreateShortLinkCommand } from './cqrs/commands/short-link.command';
+import { GetAllShortLinkQuery, GetShortLinkByIdQuery } from './cqrs/queries/short-link.query';
+import { SkipThrottle, Throttle, ThrottlerGuard } from '@nestjs/throttler';
 
+@UseGuards(ThrottlerGuard)
 @Controller('short-links')
 export class ShortLinkController {
   constructor(
@@ -15,7 +17,7 @@ export class ShortLinkController {
     private readonly cacheService: CacheService
   ) { }
 
-
+  @Throttle({ medium: { limit: 20, ttl: 10000 } })
   @Post('')
   async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
     try {
@@ -39,24 +41,29 @@ export class ShortLinkController {
     }
   }
 
+  @Throttle({ medium: { limit: 20, ttl: 10000 } })
   @Get('')
   async getAllShortLinks() {
-    // const result = await this..getInstance().execute();
-    // return {
-    //   status: 'OK',
-    //   code: HttpStatus.OK,
-    //   message: 'Get data success',
-    //   data: result,
-    // };
+    const result = await this.queryBus.execute(
+      new GetAllShortLinkQuery(),
+    );
+    return {
+      status: 'OK',
+      code: HttpStatus.OK,
+      message: 'Get data success',
+      data: result,
+    };
   }
 
+
+  
   @Get('/:shortId')
   @Redirect()
   async getShortLinkById(@Param('shortId') shortId: string) {
     try {
       console.log("Fetching from cache...");
       let longUrl = await this.cacheService.getUrl(shortId);
-      console.log("Cache result: ", longUrl);
+
       if (longUrl == null) {
         const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
         this.cacheService.setUrl(shortId, result.longUrl);

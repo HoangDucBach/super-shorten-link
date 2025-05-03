@@ -1,9 +1,8 @@
-import { CreateShortLinkHandler } from "./commands/create-short-link.handler";
-import { GetShortLinkByIdHandler } from "./queries/get-short-link-by-id.handler";
-import { RedirectShortLinkHandler } from "./commands/redirect-short-link.handler";
-import { ShortLinkCreatedHandler } from "./events/short-link-created.handler";
+import { GetAllShortLinkHandler, GetShortLinkByIdHandler } from "./queries/short-link.handler";
+import { ShortLinkToReadDatabaseHandler } from "./events/short-link-to-read-database.handler";
 import { ShortLinkCacheHandler } from "./events/short-link-cache.handler";
+import { CreateShortLinkHandler } from "./commands/short-link.handler";
 
 export const CommandHandlers = [CreateShortLinkHandler];
-export const QueryHandlers = [GetShortLinkByIdHandler];
-export const EventsHandlers = [ShortLinkCreatedHandler,ShortLinkCacheHandler];
+export const QueryHandlers = [GetShortLinkByIdHandler, GetAllShortLinkHandler];
+export const EventsHandlers = [ShortLinkToReadDatabaseHandler, ShortLinkCacheHandler];

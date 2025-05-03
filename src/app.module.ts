@@ -9,6 +9,7 @@ import { DistributedCounterModule } from './distributed-counter/distributed-coun
 import { ShortIdGenModule } from './short-id-gen/short-id-gen.module';
 import { CqrsModule } from '@nestjs/cqrs';
 import { CacheModule } from './cache/cache.module';
+import { RateLimitingModule } from './rate-limting/rate-limting.module';
 
 @Module({
   imports: [
@@ -19,7 +20,9 @@ import { CacheModule } from './cache/cache.module';
     EnvironmentConfigModule,
     DistributedCounterModule,
     ShortIdGenModule
-  ,CacheModule.registerAsync()],
+    , CacheModule.registerAsync(),
+    RateLimitingModule
+  ],
   controllers: [UserController, ShortLinkController],
 })
 export class AppModule { }

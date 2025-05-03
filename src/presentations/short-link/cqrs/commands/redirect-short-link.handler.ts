@@ -3,11 +3,12 @@ import { RedirectShortLinkCommand } from './redirect-short-link.command';
 import { ShortLinkRepository } from 'src/domains/repositories/short-link.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ShortLink } from 'src/infrastructures/entities/short-link.entity';
+import { DatabaseStreamType } from 'src/domains/config/database.interface';
 
 @CommandHandler(RedirectShortLinkCommand)
 export class RedirectShortLinkHandler implements ICommandHandler<RedirectShortLinkCommand> {
     constructor(
-        @InjectRepository(ShortLink, "read_connection")
+        @InjectRepository(ShortLink, DatabaseStreamType.WRITE)
         private shortLinkRepository: ShortLinkRepository
     ) { }
 

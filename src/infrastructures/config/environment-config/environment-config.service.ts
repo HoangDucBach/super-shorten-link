@@ -1,10 +1,36 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { DatabaseConfig, DatabaseStreamType } from 'src/domains/config/database.interface';
+import { DatabaseConfig, DatabaseStreamType, RateLimitingConfig, RateLimitingType } from 'src/domains/config/database.interface';
 
 @Injectable()
-export class EnvironmentConfigService implements DatabaseConfig {
+export class EnvironmentConfigService implements DatabaseConfig, RateLimitingConfig {
   constructor(private configService: ConfigService) { }
+
+  getRateLimitingTtl(type: RateLimitingType): number {
+    switch (type) {
+      case RateLimitingType.SHORT:
+        console.log('short', this.configService.get<number>('THROTTLE_SHORT_TTL')!);
+        return this.configService.get<number>('THROTTLE_SHORT_TTL')!;
+      case RateLimitingType.MEDIUM:
+        return this.configService.get<number>('THROTTLE_MEDIUM_TTL')!;
+      case RateLimitingType.LONG:
+        return this.configService.get<number>('THROTTLE_LONG_TTL')!;
+      default:
+        throw new Error('Invalid rate limiting type');
+    }
+  }
+  getRateLimitingLimit(type: RateLimitingType): number {
+    switch (type) {
+      case RateLimitingType.SHORT:
+        return this.configService.get<number>('THROTTLE_SHORT_LIMIT')!;
+      case RateLimitingType.MEDIUM:
+        return this.configService.get<number>('THROTTLE_MEDIUM_LIMIT')!;
+      case RateLimitingType.LONG:
+        return this.configService.get<number>('THROTTLE_LONG_LIMIT')!;
+      default:
+        throw new Error('Invalid rate limiting type');
+    }
+  }
 
   getDatabaseHost(type: DatabaseStreamType): string {
     switch (type) {
