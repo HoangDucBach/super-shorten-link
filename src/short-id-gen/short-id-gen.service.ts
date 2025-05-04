@@ -15,10 +15,8 @@ export class ShortIdGenService {
         try {
             const uniqueNumber = await this.counterService.getNextCounterValue();
             const shortId = this.toBase62(uniqueNumber);
-            this.logger.debug(`Generated unique number: ${uniqueNumber}, Short ID: ${shortId}`);
             return shortId;
         } catch (error) {
-            this.logger.error('Failed to generate short ID from counter service', error);
             throw new Error(`Failed to generate unique short ID: ${error.message}`);
         }
     }

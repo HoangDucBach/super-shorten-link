@@ -19,6 +19,7 @@ export const getWriteTypeOrmModuleOptions = (
   autoLoadEntities: true,
   synchronize: false,
   schema: process.env.DATABASE_SCHEMA,
+  logging: false,
   migrationsRun: true,
   migrations: [__dirname + '/migrations**/*{.ts,.js}'],
   cli: {
@@ -39,6 +40,7 @@ export const getReadTypeOrmModuleOptions = (
   entities: [__dirname + './../../**/*.entity{.ts,.js}'],
   autoLoadEntities: true,
   synchronize: false,
+  logging: false,
   schema: process.env.DATABASE_SCHEMA,
 } as TypeOrmModuleOptions);
 

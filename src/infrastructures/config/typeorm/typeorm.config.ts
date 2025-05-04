@@ -36,7 +36,6 @@ Promise.all([
   readConfig.initialize()
 ])
   .then(() => {
-    console.log('All Data Sources have been initialized!');
   })
   .catch((err) => {
     console.error('Error during Data Sources initialization', err);

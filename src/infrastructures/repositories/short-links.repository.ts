@@ -65,9 +65,8 @@ export class ShortLinkRepositoryOrm implements ShortLinkRepository {
         const shortLink = new ShortLink();
         shortLink.shortId = await this.shortIdGenService.generateShortId();
         shortLink.longUrl = createShortLinkDto.longUrl;
-        shortLink.createdAt = new Date();
         return await this.writeShortLinkRepository.save(shortLink);
-        }
+    }
 
     async getShortLinkById(shortId: string): Promise<ShortLinkForReadM | null> {
 

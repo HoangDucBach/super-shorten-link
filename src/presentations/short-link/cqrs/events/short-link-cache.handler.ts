@@ -14,6 +14,5 @@ export class ShortLinkCacheHandler implements IEventHandler<ShortLinkCreatedEven
     handle(event: ShortLinkCreatedEvent) {
         const { shortLink } = event
         this.cacheService.setUrl(shortLink.shortId, shortLink.longUrl);
-        console.log("Cache set: ", shortLink.shortId, shortLink.longUrl);
     }
 }

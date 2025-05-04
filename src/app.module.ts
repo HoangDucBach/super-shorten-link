@@ -10,6 +10,7 @@ import { ShortIdGenModule } from './short-id-gen/short-id-gen.module';
 import { CqrsModule } from '@nestjs/cqrs';
 import { CacheModule } from './cache/cache.module';
 import { RateLimitingModule } from './rate-limting/rate-limting.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { RateLimitingModule } from './rate-limting/rate-limting.module';
     DistributedCounterModule,
     ShortIdGenModule
     , CacheModule.registerAsync(),
-    RateLimitingModule
+    RateLimitingModule,
+    HealthModule
   ],
   controllers: [UserController, ShortLinkController],
 })

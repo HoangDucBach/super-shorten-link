@@ -9,7 +9,6 @@ export class EnvironmentConfigService implements DatabaseConfig, RateLimitingCon
   getRateLimitingTtl(type: RateLimitingType): number {
     switch (type) {
       case RateLimitingType.SHORT:
-        console.log('short', this.configService.get<number>('THROTTLE_SHORT_TTL')!);
         return this.configService.get<number>('THROTTLE_SHORT_TTL')!;
       case RateLimitingType.MEDIUM:
         return this.configService.get<number>('THROTTLE_MEDIUM_TTL')!;
