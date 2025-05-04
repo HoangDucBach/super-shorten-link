@@ -141,7 +141,7 @@ export class ShortLinkController {
   }
 
   @Get('redirect/:shortId')
-  @Redirect()
+  @Redirect('https://docs.nestjs.com', HttpStatus.MOVED_PERMANENTLY)
   async getAndRedirect(@Param('shortId') shortId: string) {
     try {
       const longUrl = await this.cacheService.getUrl(shortId);
