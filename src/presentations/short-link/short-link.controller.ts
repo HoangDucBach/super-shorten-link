@@ -79,10 +79,10 @@ export class ShortLinkController {
   @Get('/:shortId')
   async getShortLinkById(@Param('shortId') shortId: string) {
     try {
-      // let longUrl = await this.cacheService.getUrl(shortId);
+      let longUrl = await this.cacheService.getUrl(shortId);
       let payload: any;
 
-      // if (longUrl == null) {
+      if (longUrl == null) {
         const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
 
         if (!result || !result.longUrl) {
@@ -92,13 +92,13 @@ export class ShortLinkController {
         longUrl = result.longUrl;
         payload = result;
 
-        // try {
-        //   if (longUrl) {
-        //     await this.cacheService.setUrl(shortId, longUrl);
-        //   }
-        // } catch (cacheError) {
-        //   console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
-        // }
+        try {
+          if (longUrl) {
+            await this.cacheService.setUrl(shortId, longUrl);
+          }
+        } catch (cacheError) {
+          console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
+        }
 
       } else {
         payload = { shortId, longUrl };
