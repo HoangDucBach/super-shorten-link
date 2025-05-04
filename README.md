@@ -1,12 +1,41 @@
 # SuperShort
 
+## Mục lục
+
 - [SuperShort](#supershort)
+  - [Mục lục](#mục-lục)
+  - [Thành viên](#thành-viên)
+  - [Demo](#demo)
+  - [Tổng quan](#tổng-quan)
+    - [Tính năng chính](#tính-năng-chính)
+    - [Vấn đề](#vấn-đề)
+      - [1. URLs dài và phức tạp](#1-urls-dài-và-phức-tạp)
+      - [2. Thách thức về hiệu năng](#2-thách-thức-về-hiệu-năng)
+  - [Các chiến lược tối ưu](#các-chiến-lược-tối-ưu)
+    - [Chiến lược tạo id](#chiến-lược-tạo-id)
+      - [**Mã hoá Base62**](#mã-hoá-base62)
+      - [**Distributed Counter**](#distributed-counter)
+      - [**Phân vùng thông minh**](#phân-vùng-thông-minh)
+    - [Chiến lược cache](#chiến-lược-cache)
+      - [Triển khai cache-server bằng Redis](#triển-khai-cache-server-bằng-redis)
+      - [Triển khai cache-client bằng Edge Middleware](#triển-khai-cache-client-bằng-edge-middleware)
+    - [Chiến lược CQRS](#chiến-lược-cqrs)
+      - [Command](#command)
+      - [Query](#query)
+    - [Mở rộng với Rate Limiting và Edge Middleware](#mở-rộng-với-rate-limiting-và-edge-middleware)
+  - [Architecture](#architecture)
+  - [Technologies](#technologies)
 
 ## Thành viên
 
 1. Hoàng Đức Bách - 22021210
 2. Lê Vũ Việt Anh - 22021212
 3. Bằng Văn Chiến - 22021195
+
+## Demo
+
+- App: <https://supershort-khaki.vercel.app/>
+- Api: <https://decisive-cherie-bach-fae494b4.koyeb.app/api/v1>
 
 ## Tổng quan
 
@@ -59,14 +88,70 @@ Sử dụng mã hóa **Base62** kết hợp với **Distributed Counter** để 
 >
 
 ### Chiến lược cache
-> - Triển khai cache-server bằng Redis
+
+Để giảm độ trễ truy cập và giảm tải hệ thống:
+
+#### Triển khai cache-server bằng Redis
+
+- **Redis** được dùng như cache phía server, giúp truy xuất URL gốc nhanh hơn rất nhiều khi short URL đã từng được truy cập.
+- Redis sử dụng chính short ID làm key và URL gốc làm value.
+- Áp dụng thuật toán **Least Recently Used (LRU)** để giải phóng bộ nhớ khi cache đầy (hỗ trợ hàng trăm ngàn cặp key-value).
+
+#### Triển khai cache-client bằng Edge Middleware
+
+- **Edge Middleware** của Next.js hỗ trợ kiểm tra short URL từ phía client trước khi gửi yêu cầu về backend, từ đó:
+  - Giảm thời gian phản hồi.
+  - Tránh cần thiết phải gọi API nếu đã có dữ liệu
+
 > - Cải thiện đáng kể thời gian truy xuất URL gốc từ short URL
 > - Cho phép lưu trữ hơn 100.000 cặp key-value, sử dụng thuật toán LRU khi bộ nhớ đầy
+> - Thực thi tại biên (edge location), rất gần người dùng với edge network lớn của Vercel
+
 ### Chiến lược CQRS
-> - Tách biệt xử lý nghiệp vụ lấy URL và tạo URL giúp chương trình phục vụ nhu cầu Query tốt hơn với số lượng yêu cầu đọc rất lớn
-> - Sử dụng database riêng giúp giảm tải, đồng bộ dữ liệu thống nhất giữa 2 database
-### Mở rộng với middle ware
-(edge function và rate limitting)
+
+Để tối ưu hoá throughput và khả năng mở rộng:
+
+#### Command 
+
+- Thao tác với Writing Database
+  - Schema dành riêng cho lưu trữ (short id, long url, timestamp cũng như các metadata)
+  
+#### Query
+
+- Thao tác với Reading Database
+  - Schema đơn giản chỉ gồm short id và long url, giảm tải database để tăng tốc độ truy vấn và tối ưu lưu trữ
+  
+> - Giảm thiểu xung đột đọc/ghi, đặc biệt với hệ thống có tỷ lệ đọc rất cao (~90%)
+> - Cho phép mở rộng phần đọc để xử lý hàng nghìn request/giây
+> - Dễ kiểm soát logic và bảo trì mỗi phần riêng biệt
+
+### Mở rộng với Rate Limiting và Edge Middleware
 
 > - Rate Limiting được áp dụng để hạn chế người dùng liên tục gửi yêu cầu làm tắc nghẽn hệ thống
-> - Edge function giúp người dùng truy cập được short URL nhanh hơn bởi thông tin đường dẫn được lưu lại ở phía Front End, cũng như giảm tảm cho hệ thống
+> - Edge function giúp người dùng truy cập được short URL nhanh hơn bởi thông tin đườn cho hệ thống
+
+## Architecture
+
+![alt text](image.png)
+
+## Technologies
+
+- **Frontend**  
+  - Sử dụng **Next.js**  
+  - Triển khai với **Edge Middleware** trên **Vercel** để tối ưu tốc độ redirect phía client
+
+- **Backend**  
+  - Phát triển bằng **NestJS**  
+  - Tích hợp **Redis** (dùng làm distributed counter & caching)  
+  - Áp dụng mô hình **CQRS** để tách biệt xử lý đọc và ghi
+
+- **ID Generation Strategy**  
+  - Kết hợp **Base62 encoding** và **Redis-based Distributed Counter**  
+
+- **Caching**  
+  - **Edge Middleware** của Next.js giúp client redirect
+  - **Redis cache** phía server tăng tốc độ truy xuất URL gốc, giảm tải database
+
+- **Database**  
+  - Sử dụng **PostgreSQL**  
+  - Áp dụng **partitioning theo hash của short ID** để sharding và tăng hiệu năng truy vấn
