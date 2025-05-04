@@ -59,6 +59,14 @@ Sử dụng mã hóa **Base62** kết hợp với **Distributed Counter** để 
 >
 
 ### Chiến lược cache
+> - Triển khai cache-server bằng Redis
+> - Cải thiện đáng kể thời gian truy xuất URL gốc từ short URL
+> - Cho phép lưu trữ hơn 100.000 cặp key-value, sử dụng thuật toán LRU khi bộ nhớ đầy
 ### Chiến lược CQRS
+> - Tách biệt xử lý nghiệp vụ lấy URL và tạo URL giúp chương trình phục vụ nhu cầu Query tốt hơn với số lượng yêu cầu đọc rất lớn
+> - Sử dụng database riêng giúp giảm tải, đồng bộ dữ liệu thống nhất giữa 2 database
 ### Mở rộng với middle ware
 (edge function và rate limitting)
+
+> - Rate Limiting được áp dụng để hạn chế người dùng liên tục gửi yêu cầu làm tắc nghẽn hệ thống
+> - Edge function giúp người dùng truy cập được short URL nhanh hơn bởi thông tin đường dẫn được lưu lại ở phía Front End, cũng như giảm tảm cho hệ thống
