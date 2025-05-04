@@ -101,7 +101,7 @@ export class ShortLinkController {
         }
 
       } else {
-        payload = { longUrl };
+        payload = { shortId, longUrl };
       }
 
       return {
