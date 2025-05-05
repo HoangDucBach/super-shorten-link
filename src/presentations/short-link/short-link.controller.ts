@@ -28,7 +28,7 @@ export class ShortLinkController {
   async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
     try {
       const { longUrl } = createShortLinkDto;
-      const shortId = this.shortIdGenService.generateShortId();
+      const shortId = await this.shortIdGenService.generateShortId();
 
       await this.persistenceQueue.add(JOB_PERSIST_SHORTLINK, { // <--- CHANGE JOB NAME HERE
         shortId: shortId,
