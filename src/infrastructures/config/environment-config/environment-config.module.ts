@@ -6,7 +6,7 @@ import { EnvironmentConfigService } from './environment-config.service';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: ['.env.development.local', '.env.development'],
+      envFilePath: ['.env.development.local', '.env.development', '.env', '.env.production.local', '.env.production'],
     }),
   ],
   providers: [EnvironmentConfigService],

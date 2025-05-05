@@ -43,7 +43,6 @@ export class ShortLinkController {
         removeOnComplete: true,
         removeOnFail: false,
       });
-
       return {
         status: 'Created',
         code: HttpStatus.CREATED,
