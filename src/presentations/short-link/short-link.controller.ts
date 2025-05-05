@@ -1,35 +1,55 @@
 import { Body, Controller, Get, HttpStatus, Param, Post, Redirect, Inject, NotFoundException, InternalServerErrorException, BadRequestException, UseGuards } from '@nestjs/common';
 import { CreateShortLinkDto } from './dto/create-short-link.dto';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
+import { QueryBus } from '@nestjs/cqrs';
 import { CacheService } from 'src/cache/cache.service';
-import { CreateShortLinkCommand } from './cqrs/commands/short-link.command';
 import { GetAllShortLinkQuery, GetShortLinkByIdQuery } from './cqrs/queries/short-link.query';
 import { ThrottlerGuard } from '@nestjs/throttler';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { ShortIdGenService } from 'src/short-id-gen/short-id-gen.service';
+import { QUEUE_PERSISTENCE, JOB_PERSIST_SHORTLINK } from 'src/job-queue-module/job-queue.constants';
 
-// @UseGuards(ThrottlerGuard)
+@UseGuards(ThrottlerGuard)
 @Controller('short-links')
 export class ShortLinkController {
   constructor(
-    private commandBus: CommandBus,
-    private queryBus: QueryBus,
+    @InjectQueue(QUEUE_PERSISTENCE)
+    private persistenceQueue: Queue,
+
     @Inject(CacheService)
-    private readonly cacheService: CacheService
+    private readonly cacheService: CacheService,
+
+    @Inject(ShortIdGenService) private shortIdGenService: ShortIdGenService,
+    private queryBus: QueryBus,
+
   ) { }
 
-  @Post('')
+  @Post()
   async createShortLink(@Body() createShortLinkDto: CreateShortLinkDto) {
     try {
       const { longUrl } = createShortLinkDto;
-      const result = await this.commandBus.execute(
-        new CreateShortLinkCommand(longUrl),
-      );
+      const shortId = this.shortIdGenService.generateShortId();
+
+      await this.persistenceQueue.add(JOB_PERSIST_SHORTLINK, { // <--- CHANGE JOB NAME HERE
+        shortId: shortId,
+        longUrl: longUrl,
+      }, {
+        jobId: `write-${shortId}`,
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 1000,
+        },
+        removeOnComplete: true,
+        removeOnFail: false,
+      });
 
       return {
         status: 'Created',
         code: HttpStatus.CREATED,
         message: 'Insert data success',
         payload: {
-          shortId: result.shortId,
+          shortId: shortId,
         },
       };
     } catch (error) {
@@ -51,7 +71,7 @@ export class ShortLinkController {
     }
   }
 
-  @Get('')
+  @Get()
   async getAllShortLinks() {
     try {
       const result = await this.queryBus.execute(

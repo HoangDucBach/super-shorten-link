@@ -10,7 +10,8 @@ import { DatabaseStreamType } from 'src/domains/config/database.interface';
 import { CacheModule } from 'src/cache/cache.module';
 
 @Module({
-  imports: [TypeOrmConfigModule,
+  imports: [
+    TypeOrmConfigModule,
     TypeOrmModule.forFeature([User, ShortLink], DatabaseStreamType.WRITE),
     TypeOrmModule.forFeature([User, ShortLink, ShortLinkForRead], DatabaseStreamType.READ),
     ShortIdGenModule],

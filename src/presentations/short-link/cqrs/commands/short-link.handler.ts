@@ -16,13 +16,14 @@ export class CreateShortLinkHandler implements ICommandHandler<CreateShortLinkCo
     ) { }
 
     async execute(command: CreateShortLinkCommand): Promise<ShortLinkM> {
-        const { longUrl } = command;
+        const { longUrl, shortId } = command;
         const shortLink = new ShortLinkM();
 
         if (!longUrl) {
             throw new BadRequestException('longUrl is required');
         }
 
+        shortLink.shortId = shortId;
         shortLink.longUrl = longUrl;
 
         const createdShortLink = await this.createShortLinkUseCase.getInstance().execute(shortLink);

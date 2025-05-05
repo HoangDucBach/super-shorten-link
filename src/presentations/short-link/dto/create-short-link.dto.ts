@@ -10,6 +10,16 @@ export class CreateShortLinkDto {
     @IsNotEmpty()
     @IsUrl({}, { message: 'Long URL must be a valid URL' })
     longUrl: string;
+
+    @ApiProperty({
+        description: 'The custom short ID for the shortened URL (optional)',
+        example: 'customShortId123',
+        required: false,
+    })
+    @IsString()
+    @IsOptional()
+    @Length(1, 20, { message: 'Short ID must be between 1 and 20 characters long' })
+    shortId?: string;
 }
 
 export class CreateShortLinkForReadDto {

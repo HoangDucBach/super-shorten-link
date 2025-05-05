@@ -1,11 +1,10 @@
-import { DynamicModule, Module } from '@nestjs/common';
+import { DynamicModule, Logger, Module } from '@nestjs/common';
 import { DistributedCounterService } from './distributed-counter.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { REDIS_CLIENT } from './distributed-counter.constants';
 import Redis, { RedisOptions } from "ioredis";
 
 export class DistributedCounterModule {
-
   static registerAsync(): DynamicModule {
     return {
       module: DistributedCounterModule,
@@ -15,6 +14,7 @@ export class DistributedCounterModule {
           provide: REDIS_CLIENT,
           inject: [ConfigService],
           useFactory: async (configService: ConfigService): Promise<Redis> => {
+            const logger = new Logger(DistributedCounterModule.name);
             const redisOptions: RedisOptions = {
               host: configService.get<string>('REDIS_HOST'),
               port: configService.get<number>('REDIS_PORT'),
@@ -22,7 +22,7 @@ export class DistributedCounterModule {
               db: configService.get<number>('REDIS_DB'),
               retryStrategy(times) {
                 const delay = Math.min(times * 50, 2000);
-                console.log(`Redis retry connection attempt ${times}, delaying for ${delay}ms`);
+                logger.warn(`Redis connection error, retrying in ${delay}ms...`);
                 return delay;
               },
               enableOfflineQueue: true,
@@ -33,9 +33,9 @@ export class DistributedCounterModule {
             redisClient.on('error', (err) => {
               console.error('Redis Client Error (from factory):', err);
             });
-            
+
             redisClient.on('connect', () => {
-              console.log('Connected to Redis (from factory)');
+              logger.log('Redis client connected successfully');
             });
 
             return redisClient;
