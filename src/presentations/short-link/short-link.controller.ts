@@ -6,7 +6,7 @@ import { CreateShortLinkCommand } from './cqrs/commands/short-link.command';
 import { GetAllShortLinkQuery, GetShortLinkByIdQuery } from './cqrs/queries/short-link.query';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
-@UseGuards(ThrottlerGuard)
+// @UseGuards(ThrottlerGuard)
 @Controller('short-links')
 export class ShortLinkController {
   constructor(
