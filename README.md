@@ -19,6 +19,9 @@
     - [Chiến lược cache](#chiến-lược-cache)
       - [Triển khai cache-server bằng Redis](#triển-khai-cache-server-bằng-redis)
       - [Triển khai cache-client bằng Edge Middleware](#triển-khai-cache-client-bằng-edge-middleware)
+    - [Chiến lược Message Queue](#chiến-lược-message-queue)
+      - [Xử lý ghi bất đồng bộ](#xử-lý-ghi-bất-đồng-bộ)
+      - [Nâng cao độ tin cậy và khả năng chịu lỗi](#nâng-cao-độ-tin-cậy-và-khả-năng-chịu-lỗi)
     - [Chiến lược CQRS](#chiến-lược-cqrs)
       - [Command](#command)
       - [Query](#query)
@@ -107,11 +110,28 @@ Sử dụng mã hóa **Base62** kết hợp với **Distributed Counter** để 
 > - Cho phép lưu trữ hơn 100.000 cặp key-value, sử dụng thuật toán LRU khi bộ nhớ đầy
 > - Thực thi tại biên (edge location), rất gần người dùng với edge network lớn của Vercel
 
+### Chiến lược Message Queue
+
+Để xử lý tác vụ ghi dữ liệu một cách bất đồng bộ, tách biệt khỏi luồng xử lý yêu cầu chính, nâng cao khả năng đáp ứng và độ tin cậy của hệ thống:
+
+#### Xử lý ghi bất đồng bộ
+
+- Short Id sẽ được gen ra trước (<0.5ms) sau đó tạo job để thực thi async command, và ngay lập tức response cho client short id
+- Thực hiện command dưới dạng một job được đẩy vào mq và thực hiện bất đồng bộ
+
+#### Nâng cao độ tin cậy và khả năng chịu lỗi
+
+- Tích hợp cơ chế retry giảm thiểu nguy cơ mất dữ liệu
+  
+> - Giảm độ trễ cho API tạo short link, phản hồi người dùng cực nhanh (chỉ thực hiện hash id).
+> - Tăng khả năng chịu lỗi của hệ thống khi tương tác với database.
+> - Cho phép xử lý lưu lượng ghi cực lớn thông qua xử lý nền và khả năng mở rộng worker độc lập.
+
 ### Chiến lược CQRS
 
 Để tối ưu hoá throughput và khả năng mở rộng:
 
-#### Command 
+#### Command
 
 - Thao tác với Writing Database
   - Schema dành riêng cho lưu trữ (short id, long url, timestamp cũng như các metadata)
