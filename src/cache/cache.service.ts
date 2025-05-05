@@ -45,7 +45,8 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     }
     async setUrl(url: string, data: string): Promise<void> {
         try {
-            await this.redis.set(url, data, 'EX', 3600); // Set expiration to 1 hour
+            console.log('Setting URL in cache:', url, data);
+            // await this.redis.set(url, data, 'EX', 3600); // Set expiration to 1 hour
         } catch (error) {
             this.logger.error('Error setting URL in cache:', error);
         }

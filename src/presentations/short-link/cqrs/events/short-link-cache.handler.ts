@@ -12,7 +12,7 @@ export class ShortLinkCacheHandler implements IEventHandler<ShortLinkCreatedEven
     ) { }
 
     handle(event: ShortLinkCreatedEvent) {
-        const { shortLink } = event
-        this.cacheService.setUrl(shortLink.shortId, shortLink.longUrl);
+        // const { shortLink } = event
+        // this.cacheService.setUrl(shortLink.shortId, shortLink.longUrl);
     }
 }

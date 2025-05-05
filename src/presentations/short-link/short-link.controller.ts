@@ -98,30 +98,30 @@ export class ShortLinkController {
   @Get('/:shortId')
   async getShortLinkById(@Param('shortId') shortId: string) {
     try {
-      let longUrl = await this.cacheService.getUrl(shortId);
+      // let longUrl = await this.cacheService.getUrl(shortId);
       let payload: any;
 
-      if (longUrl == null) {
+      // if (longUrl == null) {
         const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
 
         if (!result || !result.longUrl) {
           throw new NotFoundException(`Short link with ID "${shortId}" not found.`);
         }
 
-        longUrl = result.longUrl;
+        // longUrl = result.longUrl;
         payload = result;
 
-        try {
-          if (longUrl) {
-            await this.cacheService.setUrl(shortId, longUrl);
-          }
-        } catch (cacheError) {
-          console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
-        }
+        // try {
+        //   if (longUrl) {
+        //     await this.cacheService.setUrl(shortId, longUrl);
+        //   }
+        // } catch (cacheError) {
+        //   console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
+        // }
 
-      } else {
-        payload = { shortId, longUrl };
-      }
+      // } else {
+      //   payload = { shortId, longUrl };
+      // }
 
       return {
         status: 'OK',
@@ -163,8 +163,9 @@ export class ShortLinkController {
   @Redirect('https://docs.nestjs.com', HttpStatus.MOVED_PERMANENTLY)
   async getAndRedirect(@Param('shortId') shortId: string) {
     try {
-      const longUrl = await this.cacheService.getUrl(shortId);
-
+      // const longUrl = await this.cacheService.getUrl(shortId);
+      const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
+      const longUrl = result?.longUrl;
       if (!longUrl) {
         throw new NotFoundException(`Short link with ID "${shortId}" not found.`);
       }
