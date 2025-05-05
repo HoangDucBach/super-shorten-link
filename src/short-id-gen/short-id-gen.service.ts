@@ -1,95 +1,66 @@
-import { Injectable, Logger, Inject, OnModuleInit } from '@nestjs/common';
-import { DistributedCounterService } from '../distributed-counter/distributed-counter.service';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class ShortIdGenService implements OnModuleInit {
+export class ShortIdGenService {
     private readonly logger = new Logger(ShortIdGenService.name);
-    private readonly NUM_CACHE_POOLS; // Number of partitions
-    private readonly CACHE_POOL_SIZE;
-    private readonly idCachePools: string[][];
-    private readonly LOW_THRESHOLD_EACH_POOL;
-    private isGeneratingBatch = false;
+    private readonly BASE62_CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    private readonly BASE = this.BASE62_CHARS.length;
+    private readonly MIN_LENGTH = 7;
+
+    private lastTimestamp: number = -1;
+    private sequence: number = 0;
+    private readonly SEQUENCE_BITS = 12;
+    private readonly MAX_SEQUENCE = (1 << this.SEQUENCE_BITS) - 1;
 
     constructor(
-        private readonly counterService: DistributedCounterService,
         private readonly configService: ConfigService
     ) {
-        this.NUM_CACHE_POOLS = this.configService.get<number>('SHORT_ID_NUM_POOLS');
-        this.CACHE_POOL_SIZE = this.configService.get<number>('SHORT_ID_CACHE_POOL_SIZE');
-        this.LOW_THRESHOLD_EACH_POOL = this.configService.get<number>('SHORT_ID_LOW_THRESHOLD');
-        this.idCachePools = Array.from({ length: this.NUM_CACHE_POOLS }, () => []);
-        this.logger.verbose(`ShortIdGenService initialized with ${this.NUM_CACHE_POOLS} pools of size ${this.CACHE_POOL_SIZE}`);
-        this.logger.verbose(`Low threshold for each pool: ${this.LOW_THRESHOLD_EACH_POOL}`);
-        this.logger.verbose(`Cache pool size: ${this.CACHE_POOL_SIZE}`);
-        this.logger.verbose(`Total cache size: ${this.NUM_CACHE_POOLS * this.CACHE_POOL_SIZE}`);
-        this.logger.verbose(`Low threshold for each pool: ${this.LOW_THRESHOLD_EACH_POOL}`);
-        this.logger.verbose(`Total cache size: ${this.NUM_CACHE_POOLS * this.CACHE_POOL_SIZE}`);
-        this.logger.verbose('ShortIdGenService initialized.');
-    }
-
-    async onModuleInit() {
-        await this.prewarmCache();
+        this.logger.verbose(`ShortIdGenService initialized (Timestamp + Sequence). Min length: ${this.MIN_LENGTH}, Sequence Bits: ${this.SEQUENCE_BITS}`);
     }
 
     generateShortId(): string {
-        for (let i = 0; i < this.NUM_CACHE_POOLS; i++) {
-            const pool = this.idCachePools[i];
-            if (pool.length > 0) {
-                const id = pool.pop();
-                if (pool.length < this.LOW_THRESHOLD_EACH_POOL) {
-                    this.generateIdsForCachePool(i).catch(err =>
-                        this.logger.error(`Failed to refill pool ${i}: ${err.message}`)
-                    );
+        let currentTimestamp = Date.now();
+
+        if (currentTimestamp === this.lastTimestamp) {
+            this.sequence = (this.sequence + 1);
+
+            if (this.sequence > this.MAX_SEQUENCE) {
+                this.logger.warn(`Sequence overflow at timestamp ${currentTimestamp}. Waiting for next millisecond.`);
+                while (currentTimestamp <= this.lastTimestamp) {
+                    currentTimestamp = Date.now();
                 }
-                if (id) return id;
+                this.sequence = 0;
             }
+        } else {
+            this.sequence = 0;
         }
-        throw new Error('No IDs available in any pool');
+
+        this.lastTimestamp = currentTimestamp;
+
+        const uniqueNumber = (BigInt(currentTimestamp) << BigInt(this.SEQUENCE_BITS)) | BigInt(this.sequence);
+
+        const encodedId = this.toBase62(uniqueNumber);
+        return encodedId;
     }
 
-    private async generateIdsForCachePool(poolIndex: number): Promise<void> {
-        const newIds: string[] = [];
-        for (let i = 0; i < this.CACHE_POOL_SIZE; i++) {
-            const uniqueNumber = await this.counterService.getNextCounterValue();
-            newIds.push(this.toBase62(uniqueNumber));
-        }
-        this.idCachePools[poolIndex].push(...newIds);
-        this.logger.debug(`Refilled pool ${poolIndex} with ${newIds.length} IDs`);
-    }
-
-    private async generateIdBatch(): Promise<void> {
-        if (this.isGeneratingBatch) return;
-        this.isGeneratingBatch = true;
-        try {
-            await Promise.all(
-                Array.from({ length: this.NUM_CACHE_POOLS }, (_, i) =>
-                    this.generateIdsForCachePool(i)
-                )
-            );
-        } finally {
-            this.isGeneratingBatch = false;
-        }
-    }
-
-    private toBase62(num: number): string {
-        const CHARS = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const BASE = CHARS.length;
-        let value = num;
-
-        if (value === 0) {
-            return CHARS[0];
+    private toBase62(num: bigint): string {
+        if (num === 0n) {
+            return this.BASE62_CHARS[0].padStart(this.MIN_LENGTH, this.BASE62_CHARS[0]);
         }
 
         let encoded = '';
-        while (value > 0) {
-            encoded = CHARS[value % BASE] + encoded;
-            value = Math.floor(value / BASE);
+        let value = num;
+        const bigIntBase = BigInt(this.BASE);
+
+        while (value > 0n) {
+            const remainder = Number(value % bigIntBase);
+            encoded = this.BASE62_CHARS[remainder] + encoded;
+            value = value / bigIntBase;
         }
 
-        const MIN_LENGTH = 7;
-        while (encoded.length < MIN_LENGTH) {
-            encoded = CHARS[0] + encoded;
+        while (encoded.length < this.MIN_LENGTH) {
+            encoded = this.BASE62_CHARS[0] + encoded;
         }
 
         return encoded;
@@ -103,13 +74,5 @@ export class ShortIdGenService implements OnModuleInit {
             hash = hash & hash;
         }
         return Math.abs(hash % 16);
-    }
-
-    async prewarmCache(): Promise<void> {
-        await this.generateIdBatch();
-    }
-
-    getCacheSize(): number {
-        return this.idCachePools.reduce((acc, pool) => acc + pool.length, 0);
     }
 }
