@@ -163,10 +163,21 @@ export class ShortLinkController {
   @Redirect('https://docs.nestjs.com', HttpStatus.MOVED_PERMANENTLY)
   async getAndRedirect(@Param('shortId') shortId: string) {
     try {
-      const longUrl = await this.cacheService.getUrl(shortId);
+      let longUrl = await this.cacheService.getUrl(shortId);
 
-      if (!longUrl) {
-        throw new NotFoundException(`Short link with ID "${shortId}" not found.`);
+      if (longUrl == null) {
+        const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
+        if (!result || !result.longUrl) {
+          throw new NotFoundException(`Short link with ID "${shortId}" not found.`);
+        }
+        longUrl = result.longUrl;
+        try {
+          if (longUrl) {
+            await this.cacheService.setUrl(shortId, longUrl);
+          }
+        } catch (cacheError) {
+          console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
+        }
       }
 
       return { url: longUrl };
@@ -174,7 +185,10 @@ export class ShortLinkController {
       if (error instanceof NotFoundException) {
         throw new NotFoundException(error.message);
       }
-      console.error(`Error redirecting short link ${shortId}:`, error);
+      if (error instanceof BadRequestException) {
+        throw new BadRequestException(error.message);
+      }
+      console.error(`Error redirecting short link with ID ${shortId}:`, error);
       throw new InternalServerErrorException('An unexpected error occurred while redirecting.');
     }
   }
