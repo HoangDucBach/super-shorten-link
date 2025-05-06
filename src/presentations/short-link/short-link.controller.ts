@@ -98,64 +98,15 @@ export class ShortLinkController {
   @Get('/:shortId')
   async getShortLinkById(@Param('shortId') shortId: string) {
     try {
-      let longUrl = await this.cacheService.getUrl(shortId);
-      let payload: any;
-
-      if (longUrl == null) {
-        const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
-
-        if (!result || !result.longUrl) {
-          throw new NotFoundException(`Short link with ID "${shortId}" not found.`);
-        }
-
-        longUrl = result.longUrl;
-        payload = result;
-
-        try {
-          if (longUrl) {
-            await this.cacheService.setUrl(shortId, longUrl);
-          }
-        } catch (cacheError) {
-          console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
-        }
-
-      } else {
-        payload = { shortId, longUrl };
-      }
-
+      const longUrl = await this.resolveShortLink(shortId);
       return {
         status: 'OK',
         code: HttpStatus.OK,
         message: 'Get data success',
-        payload: payload,
+        payload: { shortId, longUrl },
       };
-
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        return {
-          status: 'Not Found',
-          code: HttpStatus.NOT_FOUND,
-          message: error.message,
-          payload: null,
-        };
-      }
-
-      if (error instanceof BadRequestException) {
-        return {
-          status: 'Bad Request',
-          code: HttpStatus.BAD_REQUEST,
-          message: error.message,
-          payload: null,
-        };
-      }
-
-      console.error(`Error getting short link by ID ${shortId}:`, error);
-      return {
-        status: 'Internal Server Error',
-        code: HttpStatus.INTERNAL_SERVER_ERROR,
-        message: 'An unexpected error occurred while retrieving the short link.',
-        payload: null,
-      };
+      return this.handleError(error, shortId);
     }
   }
 
@@ -163,33 +114,74 @@ export class ShortLinkController {
   @Redirect('https://docs.nestjs.com', HttpStatus.MOVED_PERMANENTLY)
   async getAndRedirect(@Param('shortId') shortId: string) {
     try {
-      let longUrl = await this.cacheService.getUrl(shortId);
-
-      if (longUrl == null) {
-        const result = await this.queryBus.execute(new GetShortLinkByIdQuery(shortId));
-        if (!result || !result.longUrl) {
-          throw new NotFoundException(`Short link with ID "${shortId}" not found.`);
-        }
-        longUrl = result.longUrl;
-        try {
-          if (longUrl) {
-            await this.cacheService.setUrl(shortId, longUrl);
-          }
-        } catch (cacheError) {
-          console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
-        }
-      }
-
+      const longUrl = await this.resolveShortLink(shortId);
       return { url: longUrl };
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        throw new NotFoundException(error.message);
-      }
-      if (error instanceof BadRequestException) {
-        throw new BadRequestException(error.message);
-      }
-      console.error(`Error redirecting short link with ID ${shortId}:`, error);
-      throw new InternalServerErrorException('An unexpected error occurred while redirecting.');
+      this.handleRedirectError(error, shortId);
     }
+  }
+
+  private async resolveShortLink(shortId: string): Promise<string> {
+    let longUrl = await this.cacheService.getUrl(shortId);
+
+    if (!longUrl) {
+      const result = await this.queryBus.execute(
+        new GetShortLinkByIdQuery(shortId),
+      );
+
+      longUrl = result.longUrl;
+
+      if (!longUrl) {
+        throw new NotFoundException(
+          `Short link with ID "${shortId}" not found.`,
+        );
+      }
+
+
+      try {
+        await this.cacheService.setUrl(shortId, longUrl);
+      } catch (cacheError) {
+        console.error(`Failed to set cache for shortId ${shortId}:`, cacheError);
+      }
+    }
+
+    return longUrl;
+  }
+
+  private handleError(error: any, shortId: string) {
+    if (error instanceof NotFoundException) {
+      return {
+        status: 'Not Found',
+        code: HttpStatus.NOT_FOUND,
+        message: error.message,
+        payload: null,
+      };
+    }
+    if (error instanceof BadRequestException) {
+      return {
+        status: 'Bad Request',
+        code: HttpStatus.BAD_REQUEST,
+        message: error.message,
+        payload: null,
+      };
+    }
+    console.error(`Error getting short link by ID ${shortId}:`, error);
+    return {
+      status: 'Internal Server Error',
+      code: HttpStatus.INTERNAL_SERVER_ERROR,
+      message: 'An unexpected error occurred while retrieving the short link.',
+      payload: null,
+    };
+  }
+
+  private handleRedirectError(error: any, shortId: string) {
+    if (error instanceof NotFoundException)
+      throw new NotFoundException(error.message);
+    if (error instanceof BadRequestException)
+      throw new BadRequestException(error.message);
+    console.error(`Error redirecting short link with ID ${shortId}:`, error);
+    throw new InternalServerErrorException(
+      'An unexpected error occurred while redirecting.',
+    );
   }
 }
