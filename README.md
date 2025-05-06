@@ -28,6 +28,7 @@
     - [Mở rộng với Rate Limiting và Edge Middleware](#mở-rộng-với-rate-limiting-và-edge-middleware)
   - [Architecture](#architecture)
   - [Technologies](#technologies)
+  - [Kiểm thử và đánh giá](#kiểm-thử-và-đánh-giá)
 
 ## Thành viên
 
@@ -175,3 +176,7 @@ Sử dụng mã hóa **Base62** kết hợp với **Distributed Counter** để 
 - **Database**  
   - Sử dụng **PostgreSQL**  
   - Áp dụng **partitioning theo hash của short ID** để sharding và tăng hiệu năng truy vấn
+
+## Kiểm thử và đánh giá
+
+<https://docs.google.com/document/d/1OmMA4huyNbtOYlZ4iqP40iGQ5OTi7vMwAJn4hrSrwOA/edit?usp=sharing>
